@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+casa.db
+casa.db.bak_*
+*.zip
+.env
