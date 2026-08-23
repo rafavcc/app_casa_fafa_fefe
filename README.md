@@ -104,3 +104,6 @@ app/
 ## Desenvolvimento
 
 Com o ambiente virtual ativado, execute o mesmo comando de inicialização após alterar o código. O banco de dados local e o diretório `venv/` não devem ser versionados.
+
+Para um diagrama e um roteiro de estudo da arquitetura, leia o
+[guia do código](docs/GUIA_DO_CODIGO.md).
