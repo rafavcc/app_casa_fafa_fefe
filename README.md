@@ -26,7 +26,7 @@ variáveis e fixos e calculando a divisão mensal entre Fafa e Fefe.
 Clone o repositório e entre na pasta do projeto:
 
 ```bash
-git clone https://github.com/SEU_USUARIO/app_casa_fafa_fefe.git
+git clone https://github.com/rafavcc/app_casa_fafa_fefe.git
 cd app_casa_fafa_fefe
 ```
 
@@ -67,8 +67,7 @@ Abra [http://localhost:8080](http://localhost:8080) no navegador.
 ## Banco de dados e privacidade
 
 Os dados são armazenados localmente no arquivo `casa.db`, na raiz do projeto.
-Esse arquivo contém despesas pessoais e é ignorado pelo Git; não o envie para
-um repositório público.
+Esse arquivo contém despesas pessoais e é ignorado pelo Git; não o envie para um repositório público.
 
 Para recomeçar com um banco vazio, feche a aplicação, remova `casa.db` e rode
 novamente:
@@ -104,6 +103,4 @@ app/
 
 ## Desenvolvimento
 
-Com o ambiente virtual ativado, execute o mesmo comando de inicialização após
-alterar o código. O banco de dados local e o diretório `venv/` não devem ser
-versionados.
+Com o ambiente virtual ativado, execute o mesmo comando de inicialização após alterar o código. O banco de dados local e o diretório `venv/` não devem ser versionados.
