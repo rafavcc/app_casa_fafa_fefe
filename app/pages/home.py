@@ -31,35 +31,35 @@ def build_home() -> None:
                 with ui.row().classes("gap-4 w-full"):
                     with ui.card().classes(card_classes("flex-1")):
                         ui.label("Total").classes("text-sm casa-muted")
-                        ui.label(f"R$ {bal['total_expenses']:,.2f}").classes("text-2xl font-bold")
+                        ui.label(f"R$ {bal.total_expenses:,.2f}").classes("text-2xl font-bold")
                     with ui.card().classes(card_classes("flex-1")):
                         ui.label("Fafa deve pagar").classes("text-sm casa-muted")
-                        ui.label(f"R$ {bal['fafa_should_pay']:,.2f}").classes("text-2xl font-bold")
+                        ui.label(f"R$ {bal.fafa_should_pay:,.2f}").classes("text-2xl font-bold")
                     with ui.card().classes(card_classes("flex-1")):
                         ui.label("Fefe deve pagar").classes("text-sm casa-muted")
-                        ui.label(f"R$ {bal['fefe_should_pay']:,.2f}").classes("text-2xl font-bold")
+                        ui.label(f"R$ {bal.fefe_should_pay:,.2f}").classes("text-2xl font-bold")
 
                 with ui.row().classes("gap-4 w-full mt-4"):
                     with ui.card().classes(card_classes("flex-1")):
-                        ui.label(f"Fafa pagou: R$ {bal['fafa_paid']:,.2f}").classes("text-sm")
-                        color = "text-green-600" if bal['balance'] >= 0 else "text-red-600"
-                        ui.label(f"Diferença: R$ {bal['balance']:,.2f}").classes(f"font-bold {color}")
+                        ui.label(f"Fafa pagou: R$ {bal.fafa_paid:,.2f}").classes("text-sm")
+                        color = "text-green-600" if bal.balance >= 0 else "text-red-600"
+                        ui.label(f"Diferença: R$ {bal.balance:,.2f}").classes(f"font-bold {color}")
                     with ui.card().classes(card_classes("flex-1")):
-                        ui.label(f"Fefe pagou: R$ {bal['fefe_paid']:,.2f}").classes("text-sm")
-                        diff = -bal['balance']
+                        ui.label(f"Fefe pagou: R$ {bal.fefe_paid:,.2f}").classes("text-sm")
+                        diff = -bal.balance
                         color = "text-green-600" if diff >= 0 else "text-red-600"
                         ui.label(f"Diferença: R$ {diff:,.2f}").classes(f"font-bold {color}")
 
                 with ui.card().classes(card_classes("w-full mt-4")):
-                    if bal['balance'] > 0:
-                        ui.label(f"Fefe deve R$ {bal['balance']:,.2f} para Fafa").classes("text-lg")
-                    elif bal['balance'] < 0:
-                        ui.label(f"Fafa deve R$ {-bal['balance']:,.2f} para Fefe").classes("text-lg")
+                    if bal.balance > 0:
+                        ui.label(f"Fefe deve R$ {bal.balance:,.2f} para Fafa").classes("text-lg")
+                    elif bal.balance < 0:
+                        ui.label(f"Fafa deve R$ {-bal.balance:,.2f} para Fefe").classes("text-lg")
                     else:
                         ui.label("Contas iguais este mês!").classes("text-lg text-green-600")
 
                 ui.label(
-                    f"Ratio: Fafa {bal['fafa_ratio']*100:.1f}% / Fefe {bal['fefe_ratio']*100:.1f}%"
+                    f"Ratio: Fafa {bal.fafa_ratio*100:.1f}% / Fefe {bal.fefe_ratio*100:.1f}%"
                 ).classes("text-sm casa-muted mt-2")
 
         refresh()

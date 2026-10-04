@@ -92,13 +92,12 @@ class RegularExpense(Base):
     __tablename__ = "regular_expenses"
 
     id : Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    place : Mapped[str] = mapped_column(String, nullable=False)
     day : Mapped[int] = mapped_column(Integer, nullable=False)
     month : Mapped[int] = mapped_column(Integer, nullable=False)
     year : Mapped[int] = mapped_column(Integer, nullable=False)
     value : Mapped[float] = mapped_column(Float, nullable=False)
     paid_by : Mapped[str] = mapped_column(String, ForeignKey("users.name"), nullable=False)
-    category_name : Mapped[str] = mapped_column(String, ForeignKey("variable_categories.name"), nullable = False)
+    category_name : Mapped[str] = mapped_column(String, ForeignKey("regular_categories.name"), nullable = False)
 
     notes : Mapped[str | None] = mapped_column(String, nullable=True)
     created_at : Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda:datetime.now(timezone.utc))

@@ -5,7 +5,6 @@ from app import crud
 from app.balance import calculate_monthly_balance
 from app.theme import card_classes, page_container
 
-
 def build_balance() -> None:
     now = datetime.now()
 
@@ -68,22 +67,22 @@ def build_balance() -> None:
                 # ── Balance Details ─────────────────────────────────────────
                 with ui.card().classes(card_classes("w-full mt-4")):
                     ui.label("Detalhes").classes("font-bold")
-                    ui.label(f"Total: R$ {bal['total_expenses']:,.2f}").classes("text-lg mt-2")
+                    ui.label(f"Total: R$ {bal.total_expenses:,.2f}").classes("text-lg mt-2")
                     ui.label(
-                        f"Variável: R$ {bal['variable_total']:,.2f} | Fixo: R$ {bal['regular_total']:,.2f}"
+                        f"Variável: R$ {bal.variable_total:,.2f} | Fixo: R$ {bal.regular_total:,.2f}"
                     ).classes("text-sm casa-muted")
                     ui.separator().classes("my-2")
 
-                    ui.label(f"Fafa deve pagar: R$ {bal['fafa_should_pay']:,.2f}").classes("text-sm")
-                    ui.label(f"Fafa pagou:       R$ {bal['fafa_paid']:,.2f}").classes("text-sm")
-                    diff = bal['balance']
+                    ui.label(f"Fafa deve pagar: R$ {bal.fafa_should_pay:,.2f}").classes("text-sm")
+                    ui.label(f"Fafa pagou:       R$ {bal.fafa_paid:,.2f}").classes("text-sm")
+                    diff = bal.balance
                     color = "text-green-600" if diff >= 0 else "text-red-600"
                     ui.label(f"Saldo Fafa: R$ {diff:,.2f}").classes(f"font-bold {color}")
 
                     ui.separator().classes("my-2")
 
-                    ui.label(f"Fefe deve pagar: R$ {bal['fefe_should_pay']:,.2f}").classes("text-sm")
-                    ui.label(f"Fefe pagou:       R$ {bal['fefe_paid']:,.2f}").classes("text-sm")
+                    ui.label(f"Fefe deve pagar: R$ {bal.fefe_should_pay:,.2f}").classes("text-sm")
+                    ui.label(f"Fefe pagou:       R$ {bal.fefe_paid:,.2f}").classes("text-sm")
                     color2 = "text-green-600" if -diff >= 0 else "text-red-600"
                     ui.label(f"Saldo Fefe: R$ {-diff:,.2f}").classes(f"font-bold {color2}")
 

@@ -49,7 +49,7 @@ class ExpenseRead(BaseModel):
     paid_by : str
     category_name: str
     notes : str | None = None
-    created_at = datetime
+    created_at: datetime
     model_config = FROM_ATTRIBUTES
 
 

@@ -5,21 +5,54 @@ from datetime import date
 import time
 from dataclasses import dataclass
 
-from app.models import (User, VariableCategory, RegularCategory, VariableExpense, RegularExpense, 
-MonthRatio)
-
 from app.config import settings
+from app.models import (
+    DEFAULT_FAFA_RATIO, 
+    FAFA,
+    FEFE,
+    MonthRatio,
+    RegularCategory,
+    RegularExpense,
+    User,
+    VariableCategory,
+    VariableExpense
+)
 
+ExpenseModel = type[VariableExpense] | type[RegularExpense]
+
+_CATEGORY_CACHE_TTL = 60.0
+_category_cache: dict[str, tuple[float, tuple[str, ...]]] = {}
+
+
+@dataclass(frozen=True, slots = True)
+class MonthRatioValue:
+    month: int
+    year: int
+    fafa_ratio: float
+    stored : bool
+
+    @property
+    def fefe_ratio(self) -> float:
+        return 1.0 - self.fafa_ratio
 
 def get_users(db: Session) -> List[User]:
-    return db.query(User).all()
+    return list(db.scalars(select(User).order_by(User.name)))
 
-def create_user(db: Session, name : str, full_name = None) -> User:
+def create_user(db: Session, name : str, full_name : str | None = None, commit : bool = True) -> User:
     user = User(name = name, full_name = full_name)
     db.add(user)
     db.commit()
-    db.refresh(user)
+    _finish(db, user, commit)
     return user
+
+def _cached_names(db: Session, key: str, model: type) -> tuple[str, ...]:
+    cached = _category_cache.get(key)
+    now = time.monotonic()
+    if cached and now - cached[0] < _CATEGORY_CACHE_TTL:
+        return cached[1]
+    names = tuple(db.scalars(select(model.name).order_by(model.name)))
+    _category_cache[key] = (now, names)
+    return names
 
 def get_variable_categories(db: Session) -> List[VariableCategory]:
     return db.query(VariableCategory).all()
@@ -234,3 +267,24 @@ def get_month_totals(db: Session, month : int, year : int) -> dict:
         "fafa_paid": var.get("FAFA", 0.0) + reg.get("FAFA", 0.0),
         "fefe_paid": var.get("FEFE", 0.0) + reg.get("FEFE", 0.0)
     }
+
+
+
+def _apply(instance: Any, data: Mapping[str, Any]) -> None:
+    for key, value in data.items():
+        setattr(instance, key, value)
+
+def _finish(db: Session, instance: Any, commit : bool) -> None:
+    if commit:
+        db.commit()
+        db.refresh(instance)
+    else:
+        db.flush()
+
+def _delete_by_id(db: Session, model: ExpenseModel, expense_id: int, commit : bool) -> bool:
+    result = db.execute(delete(model).where(model.id == expense_id))
+    deleted = bool(result.rowcount)
+    if commit and deleted:
+        db.commit()
+    return deleted
+        

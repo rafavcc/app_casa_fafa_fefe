@@ -44,8 +44,23 @@ def calculate_monthly_balance(db: Session, month: int, year: int) -> MonthlyBala
     totals = get_month_totals(db, month, year)
     ratio = get_month_ratio(db, month, year)
 
-    total = totals.total
+    variable_total = totals["variable_total"]
+    regular_total = totals["regular_total"]
+    total = variable_total + regular_total
     fafa_should = money(total * ratio.fafa_ratio)
     fefe_should = money(total * ratio.fefe_ratio)
 
-    balance = totals["fafa_paid"] - fafa_should
+    return MonthlyBalanceResult(
+        month=month,
+        year=year,
+        total_expenses=(total),
+        variable_total=money(variable_total),
+        regular_total=money(regular_total),
+        fafa_ratio=round(ratio.fafa_ratio, 4),
+        fefe_ratio=round(ratio.fefe_ratio, 4),
+        fafa_should_pay=fafa_should,
+        fefe_should_pay=fefe_should,
+        fafa_paid=money(totals["fafa_paid"]),
+        fefe_paid=money(totals["fefe_paid"]),
+        balance=money(totals["fafa_paid"] - fafa_should)
+    )
