@@ -141,4 +141,10 @@ def page_balance():
     build_balance()
 
 
-ui.run_with(app, mount_path="/", storage_secret="casa_fafa_fefe")
+ui.run_with(
+    app,
+    mount_path="/",
+    storage_secret="casa_fafa_fefe",
+    favicon="app/static/favicon.svg",
+    viewport="width=device-width, initial-scale=1, viewport-fit=cover",
+)

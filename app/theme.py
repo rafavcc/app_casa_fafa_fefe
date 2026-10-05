@@ -53,6 +53,12 @@ def apply_app_theme() -> None:
             color: var(--casa-text);
             border-bottom: 1px solid var(--casa-border);
             backdrop-filter: blur(14px);
+            padding-left: max(16px, env(safe-area-inset-left));
+            padding-right: max(16px, env(safe-area-inset-right));
+          }
+
+          .casa-header .q-btn {
+            min-height: 44px;
           }
 
           .casa-nav {
@@ -64,7 +70,6 @@ def apply_app_theme() -> None:
 
           .casa-nav .q-btn {
             border-radius: 6px;
-            min-height: 34px;
             color: var(--casa-muted);
           }
 
@@ -97,6 +102,34 @@ def apply_app_theme() -> None:
             border: 1px solid var(--casa-border);
             border-radius: 8px;
             padding: 10px 12px;
+            flex-wrap: wrap;
+          }
+
+          @media (max-width: 640px) {
+            .casa-header {
+              flex-wrap: wrap;
+              padding-top: max(8px, env(safe-area-inset-top));
+            }
+
+            .casa-header .q-space {
+              display: none;
+            }
+
+            .casa-nav {
+              order: 3;
+              width: 100%;
+              max-width: 100%;
+              justify-content: space-between;
+              overflow-x: auto;
+            }
+
+            .casa-nav .q-btn {
+              flex: 1 0 auto;
+            }
+
+            .q-page-container {
+              padding-bottom: max(16px, env(safe-area-inset-bottom));
+            }
           }
 
           html[data-theme="dark"] .q-page,

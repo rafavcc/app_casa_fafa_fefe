@@ -53,13 +53,12 @@ class MonthRatio(Base):
 
     @property
     def fefe_ratio(self) -> float:
-        return round(1.0 - self.fafa_ratio, 2)
+        return 1.0 - self.fafa_ratio
 
     __table_args__ = (
         UniqueConstraint("month", "year", name="uq_month_ratio"),
         CheckConstraint("month BETWEEN 1 AND 12", name="ck_ratio_month"),
         CheckConstraint("fafa_ratio > 0 AND fafa_ratio < 1", name="ck_ratio_range"),
-        Index("ix")
     )
 
 class VariableExpense(Base):
@@ -110,5 +109,5 @@ class RegularExpense(Base):
         CheckConstraint("month BETWEEN 1 AND 12", name="ck_var_day"),
         CheckConstraint("value > 0", name = "ck_var_value"),
         UniqueConstraint("month", "year", "category_name", name = "uq_reg_per_month"),
-        Index("ix_y_m_pb_v", "year", "month", "paid_by", "value")
+        Index("ix_regular_y_m_pb_v", "year", "month", "paid_by", "value")
     )
