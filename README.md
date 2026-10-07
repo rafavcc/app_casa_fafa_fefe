@@ -26,8 +26,8 @@ variáveis e fixos e calculando a divisão mensal entre Fafa e Fefe.
 Clone o repositório e entre na pasta do projeto:
 
 ```bash
-git clone https://github.com/rafavcc/app_casa_fafa_fefe.git
-cd app_casa_fafa_fefe
+git clone https://github.com/rafavcc/app_mansao_fefael.git
+cd app_mansao_fefael
 ```
 
 Crie e ative um ambiente virtual:
@@ -62,7 +62,7 @@ Inicie a aplicação:
 uvicorn app.main:app --reload
 ```
 
-Abra [http://localhost:8080](http://localhost:8080) no navegador.
+Abra [http://localhost:8888](http://localhost:8888) no navegador.
 
 ## Banco de dados e privacidade
 
