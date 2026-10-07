@@ -21,7 +21,18 @@ from app.formatting import format_brl, format_number_br, format_pct, month_name,
 from app.theme import card_classes, page_container
 
 
-CHART_VIEWS = {"spending": "Gastos", "payers": "Quem pagou", "saldo": "Saldo"}
+CHART_VIEWS = {
+    "spending": "Gastos",
+    "payers": "Quem pagou",
+    "saldo": "Saldo",
+    "categories": "Categorias",
+}
+
+CATEGORY_COLORS = (
+    "#0ea5e9", "#8b5cf6", "#f59e0b", "#ef4444", "#10b981", "#ec4899",
+    "#6366f1", "#84cc16", "#f97316", "#14b8a6", "#a855f7", "#eab308",
+    "#06b6d4", "#d946ef", "#22c55e", "#fb7185", "#64748b", "#a3e635",
+)
 
 SALDO_TOOLTIP_JS = """(p) => {
     const v = p[0].value;
@@ -172,10 +183,42 @@ def category_chart(detail: dict) -> dict:
     }
 
 
+def category_spending_chart(months: list[dict]) -> dict:
+    values_by_category: dict[tuple[str, str], list[float]] = {}
+
+    for month_index, month in enumerate(months):
+        for kind, field in (
+            ("variable", "variable_categories"),
+            ("regular", "regular_categories"),
+        ):
+            for category in month[field]:
+                key = (kind, category["name"])
+                values_by_category.setdefault(key, [0.0] * len(months))[month_index] = category["total"]
+
+    series = []
+    for index, ((kind, name), values) in enumerate(sorted(values_by_category.items())):
+        label = "Variável" if kind == "variable" else "Fixo"
+        series.append({
+            "name": f"{label}: {name}",
+            "type": "bar",
+            "stack": "total",
+            "data": values,
+            "itemStyle": {"color": CATEGORY_COLORS[index % len(CATEGORY_COLORS)]},
+        })
+
+    return base_chart(
+        legend={"type": "scroll", "bottom": 0},
+        xAxis=category_axis(_labels(months)),
+        yAxis=value_axis(),
+        series=series,
+    )
+
+
 CHART_BUILDERS = {
     "spending": spending_chart,
     "payers": payers_chart,
     "saldo": saldo_chart,
+    "categories": category_spending_chart,
 }
 
 
