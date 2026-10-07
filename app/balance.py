@@ -118,12 +118,12 @@ def calculate_year_months(db: Session, year: int, today: Optional[date] = None) 
         if month == 1:
             previous_totals, previous_categories = december_totals, december_categories
         else:
-            previous_totals = totals.get(month - 1, _empty_categories())
+            previous_totals = totals.get(month - 1, crud.empty_totals())
             previous_categories = categories.get(month - 1, _empty_categories())
         months.append(build_month_detail(
             month,
             year,
-            totals.get(month, _empty_categories()),
+            totals.get(month, crud.empty_totals()),
             ratios.get(month, DEFAULT_FAFA_RATIO),
             categories.get(month, _empty_categories()),
             previous_totals,

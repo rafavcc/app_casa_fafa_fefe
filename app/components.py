@@ -8,7 +8,6 @@ from app.database import get_session
 from app.formatting import format_brl, format_date_br, format_pct, month_name
 from app.theme import card_classes
 
-
 COLORS = {
     "variable": "#0ea5e9",
     "regular": "#8b5cf6",
@@ -210,7 +209,7 @@ def base_chart(**overrides) -> dict:
         "tooltip": {
             "trigger": "axis",
             "confine": True,
-            "valueFormatter": BRL_JS,
+            ":valueFormatter": BRL_JS,
         },
         "legend": {
             "bottom": 0,
@@ -226,7 +225,7 @@ def value_axis(**extra) -> dict:
         "type": "value",
         "axisLabel": {
             "color": CHART_TEXT,
-            "formatter": COMPACT_JS,
+            ":formatter": COMPACT_JS,
         },
         "splitLine": {
             "lineStyle": {"color": CHART_GRID},

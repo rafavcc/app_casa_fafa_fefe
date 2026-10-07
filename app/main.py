@@ -1,8 +1,11 @@
 import logging
 import os
+
+import secrets
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Depends
+from nicegui import ui
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -10,12 +13,11 @@ from typing import Optional
 from app.database import get_db, get_session, init_db
 from app import crud
 from app.schemas import (
-    Balance, MonthlyBalance, MonthRatioCreate, MonthRatioResponse,
+    MonthDetail, MonthlyBalance, MonthRatioCreate, MonthRatioResponse,
     RegularExpenseCreate, RegularExpenseResponse, VariableExpenseCreate, VariableExpenseResponse,
 )
 from app.balance import calculate_monthly_balance, calculate_year_months
-from app.seed import import_seed, send_reference_data
-from app.ui import import STATIC_DIR, register_pages
+from app.ui import STATIC_DIR, register_pages
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +26,6 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     init_db()
     with get_session() as db:
-        seed_reference_data(db)
         crud.autofill_current_month_regular_expenses(db)
     yield
 
@@ -115,7 +116,7 @@ def list_regular_categories(db: Session = Depends(get_db)):
 @app.get("/api/month-ratio")
 def get_month_ratio(month: int, year: int, db: Session = Depends(get_db)):
     ratio = crud.get_month_ratio(db, month, year)
-    return {"month": ratio.month, "year": ratio.year, "fafa_ratio": ratio.fafa_ratio, "fefe_ratio": r.fefe_ratio}
+    return {"month": ratio.month, "year": ratio.year, "fafa_ratio": ratio.fafa_ratio, "fefe_ratio": ratio.fefe_ratio}
 
 
 @app.put("/api/month-ratio", response_model=MonthRatioResponse)
@@ -152,12 +153,13 @@ def _storage_secret() -> str:
     return secret
 
 
-register_pages(
+register_pages()
+ui.run_with(
     app,
     mount_path="/",
     storage_secret=_storage_secret(),
     title="Mansão Fafew",
     language="pt-BR",
-    favicon=STATIC_DIR / "apple-touch-icon.png",
+    favicon=(STATIC_DIR / "favicon.svg").read_text(encoding="utf-8"),
     viewport="width=device-width, initial-scale=1, viewport-fit-cover",
 )

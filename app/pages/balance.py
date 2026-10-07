@@ -5,10 +5,9 @@ from nicegui import events, ui
 from app import crud
 from app.balance import calculate_month_detail, calculate_year_months
 from app.components import (
-    BRL_JS,
     COLORS,
     base_chart,
-    category_axes,
+    category_axis,
     change_hint,
     kpi_card,
     money_input,
@@ -19,27 +18,27 @@ from app.components import (
 )
 from app.database import get_session
 from app.formatting import format_brl, format_number_br, format_pct, month_name, parse_money
-from app.theme import card_classes, page_classes
+from app.theme import card_classes, page_container
 
 
 CHART_VIEWS = {"spending": "Gastos", "payers": "Quem pagou", "saldo": "Saldo"}
 
-SALDO_TOOLTIP_JS = """
-const v = p[0].value;
-const f = Math.abs(v).toLocaleString("pt-BR", {minimumFractionDigits: 2, maximumFractionDigits: 2});
-const text = v > 0 ? `Fafa deve R$ ${f}` : v < 0 ? `Fafa pagou R$ ${f}` : "Contas iguais";
-return p[0].name + "<br>" + text;
-"""
+SALDO_TOOLTIP_JS = """(p) => {
+    const v = p[0].value;
+    const f = Math.abs(v).toLocaleString("pt-BR", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    const text = v > 0 ? `Fafa deve R$ ${f}` : v < 0 ? `Fafa pagou R$ ${f}` : "Contas iguais";
+    return p[0].name + "<br>" + text;
+}"""
 
 
 def _labels(months: list[dict]) -> list[str]:
-    return [month["month_short"] for month in months]
+    return [month_name(month["month"], short=True) for month in months]
 
 
 def spending_chart(months: list[dict]) -> dict:
     return base_chart(
-        xaxis=category_axes(_labels(months)),
-        yaxis=value_axis(),
+        xAxis=category_axis(_labels(months)),
+        yAxis=value_axis(),
         series=[
             {
                 "name": "Variável",
@@ -53,7 +52,7 @@ def spending_chart(months: list[dict]) -> dict:
                 "type": "bar",
                 "stack": "total",
                 "data": [m["regular_total"] for m in months],
-                "itemStyle": {"color": COLORS["fixo"]},
+                "itemStyle": {"color": COLORS["regular"]},
             },
         ],
     )
@@ -69,8 +68,8 @@ def payers_chart(months: list[dict]) -> dict:
         }
 
     return base_chart(
-        xaxis=category_axes(_labels(months)),
-        yaxis=value_axis(),
+        xAxis=category_axis(_labels(months)),
+        yAxis=value_axis(),
         series=[
             {
                 "name": "Fafa pagou",
@@ -105,10 +104,10 @@ def saldo_chart(months: list[dict]) -> dict:
     ]
 
     return base_chart(
-        tooltip={"trigger": "axis", "confine": True, "formatter": SALDO_TOOLTIP_JS},
+        tooltip={"trigger": "axis", "confine": True, ":formatter": SALDO_TOOLTIP_JS},
         grid={"left": 8, "right": 12, "top": 26, "bottom": 8, "containLabel": True},
-        xaxis=category_axes(_labels(months)),
-        yaxis=value_axis(),
+        xAxis=category_axis(_labels(months)),
+        yAxis=value_axis(),
         series=[
             {
                 "name": "Saldo",
@@ -124,10 +123,6 @@ def category_chart(detail: dict) -> dict:
     items = [(c["name"], c, "variable") for c in detail["variable_categories"]]
     items += [(c["name"], c, "regular") for c in detail["regular_categories"]]
 
-    items = [
-        (f"{c["name"]}", c, "variable") for c in detail["variable_categories"]
-    ]
-
     # ECharts draws the first category at the bottom
     items.reverse()
 
@@ -141,7 +136,7 @@ def category_chart(detail: dict) -> dict:
         },
         "tooltip": {"trigger": "axis", "confine": True},
         "xAxis": value_axis(),
-        "yAxis": category_axes([name for name, _, _ in items]),
+        "yAxis": category_axis([name for name, _, _ in items]),
         "series": [
             {
                 "name": "Este mês",
@@ -190,7 +185,7 @@ def build_balance() -> None:
     sections: dict[int, ui.element] = {}
     holders: dict[int, ui.column] = {}
 
-    with ui.page_container():
+    with page_container():
         ui.label("Balanço do mês").classes("casa-page-title text-2xl font-bold")
 
         with ui.row().classes("w-full gap-3 px-3"):
@@ -225,13 +220,14 @@ def build_balance() -> None:
 
     def render_chart() -> None:
         chart_area.clear()
-        months = ordered_months()
+        month_numbers = ordered_months()
 
-        chart_card.set_visibility(bool(months))
+        chart_card.set_visibility(bool(month_numbers))
 
-        if not months:
+        if not month_numbers:
             return
 
+        months = [state["months"][month] for month in month_numbers]
         with chart_area:
             ui.echart(
                 CHART_BUILDERS[state["view"]](months),
@@ -252,7 +248,7 @@ def build_balance() -> None:
             f'getHtmlElement("{section.id}").scrollIntoView({{behavior: "smooth", block: "start"}})'
         )
 
-    def load_month(month: int) -> None:
+    def reload_month(month: int) -> None:
         with get_session() as db:
             state["months"][month] = calculate_month_detail(
                 db,
@@ -283,6 +279,9 @@ def build_balance() -> None:
 
             sections[month] = section
 
+            with section:
+                body = ui.column().classes("w-full")
+
             with section.add_slot("header"):
                 with ui.row().classes("w-full justify-between no-wrap gap-2"):
                     with ui.column().classes("gap-0"):
@@ -306,7 +305,8 @@ def build_balance() -> None:
                     return
 
                 built["done"] = True
-                month_body(detail, on_ratio_saved=on_ratio_saved)
+                with body:
+                    month_body(detail, on_ratio_saved=reload_month)
 
             section.on_value_change(
                 lambda e: build_body() if e.value else None
@@ -324,8 +324,12 @@ def build_balance() -> None:
         with get_session() as db:
             months = calculate_year_months(db, int(year.value))
 
-        for month in months:
-            holders[month] = sections_column
+        for detail in months:
+            month = detail["month"]
+            state["months"][month] = detail
+            with sections_column:
+                holders[month] = ui.column().classes("w-full")
+            render_month(month, expanded=False)
 
         render_chart()
 

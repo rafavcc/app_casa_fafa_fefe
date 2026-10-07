@@ -52,43 +52,43 @@ def build_regular_expenses() -> None:
                     ).props("dense").classes("flex-1 sm:flex-none sm:w-32").mark(f"value-{name}")
                     rows[name] = (day_input, value_input)
 
-        def save_all() -> None:
-            parsed = {}
-            invalid = []
-            for name, (_, value_input) in rows.items():
-                raw = (value_input.value or "").strip()
-                value = parse_money(raw) if raw else 0.0
-                if value is None or value < 0:
-                    invalid.append(name)
-                    continue
-                parsed[name] = value
-            if invalid:
-                ui.notify(f"Valor inválido: {', '.join(invalid)}", type="warning")
-                return
-
-            with get_session() as db:
-                for name, (day_input, _) in rows.items():
-                    if parsed[name] == 0:
-                        if name in existing:
-                            crud.delete_regular_expense(db, existing[name]["id"])
+            def save_all() -> None:
+                parsed = {}
+                invalid = []
+                for name, (_, value_input) in rows.items():
+                    raw = (value_input.value or "").strip()
+                    value = parse_money(raw) if raw else 0.0
+                    if value is None or value < 0:
+                        invalid.append(name)
                         continue
-                    crud.upsert_regular_expense(db, {
-                        "day": int(day_input.value),
-                        "month": selected_month,
-                        "year": selected_year,
-                        "value": parsed[name],
-                        "paid_by": FAFA,
-                        "category_name": name,
-                    })
+                    parsed[name] = value
+                if invalid:
+                    ui.notify(f"Valor inválido: {', '.join(invalid)}", type="warning")
+                    return
 
-            ui.notify("Salvo!", type="positive")
-            build_form()
+                with get_session() as db:
+                    for name, (day_input, _) in rows.items():
+                        if parsed[name] == 0:
+                            if name in existing:
+                                crud.delete_regular_expense(db, existing[name]["id"])
+                            continue
+                        crud.upsert_regular_expense(db, {
+                            "day": int(day_input.value),
+                            "month": selected_month,
+                            "year": selected_year,
+                            "value": parsed[name],
+                            "paid_by": FAFA,
+                            "category_name": name,
+                        })
 
-        total = sum(e["value"] for e in existing.values())
-        with ui.row().classes("w-full items-center justify-between mt-3 gap-2"):
-            ui.label(f"Total: {format_brl(total)}").classes("text-lg font-bold")
-        with ui.row().classes("gap-2"):
-            ui.button("Desfazer", icon="undo", on_click=build_form).props("flat no-caps")
-            ui.button("Salvar tudo", icon="save", on_click=save_all).props("unelevated no-caps").mark("save")
+                ui.notify("Salvo!", type="positive")
+                build_form()
+
+            total = sum(e["value"] for e in existing.values())
+            with ui.row().classes("w-full items-center justify-between mt-3 gap-2"):
+                ui.label(f"Total: {format_brl(total)}").classes("text-lg font-bold")
+            with ui.row().classes("gap-2"):
+                ui.button("Desfazer", icon="undo", on_click=build_form).props("flat no-caps")
+                ui.button("Salvar tudo", icon="save", on_click=save_all).props("unelevated no-caps").mark("save")
 
     build_form()

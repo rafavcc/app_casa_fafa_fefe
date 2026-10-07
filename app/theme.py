@@ -8,8 +8,6 @@ def apply_app_theme() -> None:
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
         <meta name="theme-color" content="#161f2f" media="(prefers-color-scheme: light)">
         <meta name="theme-color" content="#0f141b" media="(prefers-color-scheme: dark)">
-        <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
-        <link rel="manifest" href="/static/manifest.json">
         <script>
         window.casaTheme = {
             current() {
@@ -268,6 +266,5 @@ def apply_app_theme() -> None:
 def page_container():
     return ui.column().classes("w-full max-w-4xl mx-auto p-3 sm:p-4 gap-4")
 
-def card_Classes(extra: str = ""):
+def card_classes(extra: str = ""):
     return f"casa-card {extra}".strip()
-    
