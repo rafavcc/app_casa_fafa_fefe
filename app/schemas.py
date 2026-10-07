@@ -1,96 +1,109 @@
-from __future__ import annotations
-
-from pydantic import BaseModel, Field, field_validator, ConfigDict
-
+import calendar
+from pydantic import BaseModel, Field, model_validator
 from typing import Optional
-from datetime import datetime
-from enum import Enum
+from datetime import date, datetime
 
-FROM_ATTRIBUTES = ConfigDict(from_attributes=True)
 
-def _current_year() -> int:
-	return datetime.now().year
+class ExpenseDate(BaseModel):
+    @model_validator(mode="after")
+    def _check_day_exists(self):
+        last_day = calendar.monthrange(self.year, self.month)[1]
+        if self.day > last_day:
+            raise ValueError(f"Day {self.day} does not exist in {self.month}/{self.year}")
+        return self
 
-class Payer(str, Enum):
-    FAFA = "FAFA"
-    FEFE = "FEFE"
 
-class ExpenseBase(BaseModel):
-    model_config = ConfigDict(use_enum_values=True)
-    day : int = Field(..., ge=1, le=31)
-    month : int = Field(..., ge=1, le=12)
-    year : int = Field(default_factory=lambda: datetime.now().year)
-    value : float = Field(..., gt=0)
-    paid_by : str = Field(..., pattern="^(FAFA|FEFE)$")
-    category_name : str = Field(..., min_length=1)
-    notes : str | None = Field(default=None, max_length=1000)
+class VariableExpenseCreate(ExpenseDate):
+    place: str = Field(..., min_length=1, max_length=300)
+    day: int = Field(..., ge=1, le=31)
+    month: int = Field(..., ge=1, le=12)
+    year: int = Field(default_factory=lambda: datetime.now().year)
+    value: float = Field(..., gt=0)
+    paid_by: str = Field(..., pattern="^(FAFA|FEFE)$")
+    category_name: str = Field(..., min_length=1)
+    notes: Optional[str] = None
 
-    @field_validator("category_name", "notes")
-    @classmethod
-    def _strip(cls, value : str | None) -> str | None:
-        if value is None:
-            return None
-        value = value.strip()
-        return value or None
 
-class VariableExpenseCreate(ExpenseBase):
-    place : str = Field(..., min_length=3, max_length=300)
-    
+class VariableExpenseResponse(BaseModel):
+    id: int
+    place: str
+    day: int
+    month: int
+    year: int
+    value: float
+    paid_by: str
+    category_name: str
+    notes: Optional[str] = None
+    created_at: datetime
 
-class RegularExpenseCreate(BaseModel):
-    pass
+    model_config = {"from_attributes": True}
 
-class ExpenseRead(BaseModel):
+
+class RegularExpenseCreate(ExpenseDate):
+    day: int = Field(..., ge=1, le=31)
+    month: int = Field(..., ge=1, le=12)
+    year: int = Field(default_factory=lambda: datetime.now().year)
+    value: float = Field(..., gt=0)
+    paid_by: str = Field(default="FAFA", pattern="^(FAFA|FEFE)$", description="Fixed expenses are always paid by Fafa")
+    category_name: str = Field(..., min_length=1)
+    notes: Optional[str] = None
+
+
+class RegularExpenseResponse(BaseModel):
     id: int
     day: int
-    month : int
-    year : int
+    month: int
+    year: int
     value: float
-    paid_by : str
+    paid_by: str
     category_name: str
-    notes : str | None = None
+    notes: Optional[str] = None
     created_at: datetime
-    model_config = FROM_ATTRIBUTES
 
+    model_config = {"from_attributes": True}
 
-class RegularExpenseResponse(ExpenseRead):
-     pass
-
-class VariableExpenseResponse(ExpenseRead):
-    place: str
-    pass
 
 class MonthRatioCreate(BaseModel):
-	month : int = Field(..., ge=1, le=12)
-	year : int = Field(default_factory = _current_year, ge=2000, le=2100)
-	fafa_ratio : float = Field(..., gt=0, lt=1, description="Fafa share as decimal")
+    month: int = Field(..., ge=1, le=12)
+    year: int = Field(default_factory=lambda: datetime.now().year)
+    fafa_ratio: float = Field(..., ge=0, le=1, description="Fafa share as decimal")
+
 
 class MonthRatioResponse(BaseModel):
-    month : int
-    year : int
-    fafa_ratio : float
-    fefe_ratio : float
-    model_config = FROM_ATTRIBUTES
+    id: int
+    month: int
+    year: int
+    fafa_ratio: float
+
+    model_config = {"from_attributes": True}
+
 
 class MonthlyBalance(BaseModel):
-    """
-    Full monthly balance calculation
-    """
-
-    month : int
-    year : int
+    # Fall monthly balance calculation
+    month: int
+    year: int
     total_expenses: float
     variable_total: float
-    regular_total : float
-    fafa_ratio : float
-    fefe_ratio : float
-    fafa_should_pay : float
-    fefe_should_pay : float
-    fafa_paid : float
-    fefe_paid : float
-    balance : float
-    debtor: str | None = None
-    creditor: str | None = None
-    settlement: float = 0.0
+    regular_total: float
+    fafa_ratio: float
+    fefe_ratio: float
+    fafa_should_pay: float
+    fefe_should_pay: float
+    fafa_paid: float
+    fefe_paid: float
+    balance: float
 
-    model_config = FROM_ATTRIBUTES
+
+class CategoryTotal(BaseModel):
+    name: str
+    total: float
+    previous_total: float
+
+
+class MonthDetail(MonthlyBalance):
+    has_expenses: bool
+    variable_categories: list[CategoryTotal]
+    regular_categories: list[CategoryTotal]
+    previous_total: float
+    total_change: float
+    total_change_pct: Optional[float] = None
